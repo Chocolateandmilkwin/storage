@@ -9,12 +9,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Storage Naming',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Storage Nameing'),
+      home: const MyHomePage(title: 'Storage Naming'),
     );
   }
 }
@@ -56,13 +56,18 @@ class StorageShortName extends StatefulWidget {
 }
 
 class _StorageShortName extends State<StorageShortName> {
-  var _test = '';
+  List<String> nameParts = ['Test1'];
+
+  var _test = 'Test1';
 
   @override
   Widget build(BuildContext context) {
+    String combinedNameParts = '${nameParts.join(', ')} $_test';
+
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
+        Text(combinedNameParts),
         Text(_test),
         const Row(
           children: [],
@@ -84,6 +89,10 @@ class _StorageShortName extends State<StorageShortName> {
             _test = value!;
           }),
         ),
+        FloatingActionButton(onPressed: () {
+          nameParts.add('YOYO');
+          setState(() {});
+        })
       ],
     );
   }
