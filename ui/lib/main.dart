@@ -39,15 +39,71 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class TestItem {
-  TestItem({required this.name});
-  String name;
+class StorageOption {
+  final String? stringValue;
+  final StorageType? storageTypeValue;
+
+  StorageOption({this.stringValue, this.storageTypeValue})
+      : assert(stringValue != null || storageTypeValue != null),
+        assert(stringValue == null || storageTypeValue == null);
 }
 
-var test = [
-  TestItem(name: 'Test1'),
-  TestItem(name: 'Test2'),
+class StorageType {
+  StorageType({required this.name, this.options});
+  String name;
+  List<StorageType>? options;
+}
+
+var storageOptions = [
+  StorageType(name: 'L1_Test1', options: [
+    StorageType(name: 'L2_Test1'),
+    StorageType(name: 'L2_Test2'),
+  ]),
+  StorageType(name: 'L1_Test2', options: [
+    StorageType(name: 'L2_Test1'),
+    StorageType(name: 'L2_Test2'),
+    StorageType(name: 'L2_Test3'),
+  ]),
 ];
+
+void clearListAfterIndex(List<String?> list, int index) {
+  for (int i = index + 1; i < list.length; i++) {
+    list[i] = '';
+  }
+}
+
+void genDropdown(
+    int offset,
+    List<DropdownButton<StorageType>?> drops,
+    List<String?> names,
+    List<StorageType> storageTypes,
+    VoidCallback setStateCallback) {
+  if (offset >= drops.length) {
+    drops.length = offset + 1;
+  }
+  if (offset >= names.length) {
+    names.length = offset + 1;
+  }
+  drops[offset] = DropdownButton<StorageType>(
+    items: storageTypes.map((option) {
+      return DropdownMenuItem<StorageType>(
+        value: option,
+        child: Text(option.name),
+      );
+    }).toList(),
+    onChanged: (value) {
+      if (value != null) {
+        names[offset] = value.name;
+        clearListAfterIndex(names, offset);
+        if (value.options != null) {
+          genDropdown(
+              offset + 1, drops, names, value.options!, setStateCallback);
+        }
+        setStateCallback();
+      }
+    },
+  );
+}
 
 class StorageShortName extends StatefulWidget {
   const StorageShortName({super.key});
@@ -56,85 +112,26 @@ class StorageShortName extends StatefulWidget {
 }
 
 class _StorageShortName extends State<StorageShortName> {
-  List<String> nameParts = ['Test1'];
-
-  var _test = 'Test1';
+  List<String?> names = [];
+  List<DropdownButton<StorageType>?> dropdowns = [];
+  late String combined = '';
 
   @override
-  Widget build(BuildContext context) {
-    String combinedNameParts = '${nameParts.join(', ')} $_test';
-
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Text(combinedNameParts),
-        Text(_test),
-        const Row(
-          children: [],
-        ),
-        DropdownButton<String>(
-          value: _test,
-          icon: const Icon(Icons.arrow_drop_down_circle),
-          items: const [
-            DropdownMenuItem<String>(
-              value: 'Test1',
-              child: Text('Test1'),
-            ),
-            DropdownMenuItem<String>(
-              value: 'Test2',
-              child: Text('Test2'),
-            ),
-          ],
-          onChanged: (value) => setState(() {
-            _test = value!;
-          }),
-        ),
-        FloatingActionButton(onPressed: () {
-          nameParts.add('YOYO');
-          setState(() {});
-        })
-      ],
-    );
+  void initState() {
+    super.initState();
+    genDropdown(0, dropdowns, names, storageOptions, () {
+      combined = names.whereType<String>().join(' ');
+      setState(() {});
+    });
   }
-}
-
-class ScrewShortName extends StatefulWidget {
-  const ScrewShortName({super.key});
-  @override
-  State<ScrewShortName> createState() => _ScrewShortName();
-}
-
-class _ScrewShortName extends State<ScrewShortName> {
-  var _test = '';
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Text(_test),
-        const Row(
-          children: [],
-        ),
-        DropdownMenu<String>(
-          dropdownMenuEntries: const [
-            DropdownMenuEntry<String>(
-              value: 'Test1',
-              label: 'Test1',
-              trailingIcon: Icon(Icons.brightness_1),
-            ),
-            DropdownMenuEntry<String>(
-              value: 'Test2',
-              label: 'Test2',
-              trailingIcon: Icon(Icons.access_alarm_sharp),
-            ),
-          ],
-          onSelected: (value) => setState(() {
-            _test = value!;
-          }),
-          leadingIcon: const Icon(Icons.access_alarm_sharp),
-        ),
-      ],
-    );
+    return Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Text('Storage Short Name: $combined'),
+      Row(
+        children: dropdowns.whereType<DropdownButton<StorageType>>().toList(),
+      )
+    ]);
   }
 }
